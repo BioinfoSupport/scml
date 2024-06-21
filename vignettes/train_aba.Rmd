@@ -1,0 +1,225 @@
+---
+title: "scml_ABA"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scml_ABA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+params:
+  data_dir: "/Users/prados/Library/CloudStorage/OneDrive-unige.ch/BSP_projects/wyss_project/data/"
+  model_dir: "/Users/prados/Library/CloudStorage/OneDrive-unige.ch/BSP_projects/wyss_project/data/"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+
+```{r}
+library(scml)
+library(torch)
+library(luz)
+library(ABAData)
+library(SingleCellExperiment)
+DelayedArray::setAutoBPPARAM(BiocParallel::MulticoreParam(workers = 6L,progressbar = TRUE))
+```
+
+
+
+# Prepare Allen Brain Mouse Atlas 10x + SSv4
+
+Load mouse data, merge them and save into a HDF5 file whose chunk are optimized for learning
+cell by cell.
+
+```{r}
+aba_ds <- function() {
+  # Load 10x and smart-seq cells
+  allenSSq <- ABAMouseSSv4(file.path(params$data_dir,"ABAMouseSSv4"));allenSSq$source <- "ssv4"
+  allen10x <- ABAMouseTENx(file.path(params$data_dir,"ABAMouseTENx"));allen10x$source <- "10x"
+  
+  # Subset to common genes only
+  allen10x <- allen10x[intersect(rownames(allen10x),rownames(allenSSq))]
+  allenSSq <- allenSSq[rownames(allen10x)]
+  
+  # Bind the datasets
+  mcols(allen10x) <- mcols(allenSSq) <- NULL
+  mcol <- intersect(names(colData(allen10x)),names(colData(allenSSq)))
+  colData(allen10x) <- colData(allen10x)[mcol]
+  colData(allenSSq) <- colData(allenSSq)[mcol]
+  allen <- cbind(allen10x,allenSSq)
+  allen$source <- factor(allen$source)
+  
+  # Split cells into 3 datasets (trn/val/tst)
+  set.seed(12345L)
+  allen$mlset <- sample(
+    factor(c("trn","val","tst"),c("trn","val","tst")),
+    size = ncol(allen),
+    replace = TRUE,
+    prob = c(0.7,0.15,0.15)
+  )
+  
+  allen
+}
+```
+
+
+# Cell-type cluster model
+
+Select a balanced subset of cell to learn a classifier
+```{r}
+# Load ABA dataset
+allen <- aba_ds()
+allen <- allen[,!is.na(allen$subclass_label)] # Keep only cells with an assigned subclass
+allen <- allen[,!is.na(allen$cluster_label)]  # Keep only cells with an assigned cluster
+
+# Normalize counts
+allen <- scuttle::logNormCounts(allen,center_size_factors=FALSE,size.factors=allen$sum/1e4)
+
+# Compute target labels to predict
+#allen$y_true <- paste(allen$class_label,allen$neighborhood_label,allen$subclass_label,allen$cluster_label,sep=" --- ") |> factor()
+allen$y_true <- paste(allen$class_label,allen$neighborhood_label,allen$subclass_label,sep=" --- ") |> factor()
+stopifnot(all(!is.na(allen$y_true)))
+sort(table(allen$y_true))
+
+# Balance training set
+trn_ds <- local({
+  trn_ds <- allen[,allen$mlset %in% "trn"]
+  trn_ids <- splitAsList(colnames(trn_ds),paste(trn_ds$y_true,trn_ds$source)) |>
+    lapply(sample,5000,replace=TRUE) |>
+    unlist() |>
+    sample()
+  trn_ds[,trn_ids]
+})
+print(table(trn_ds$y_true,trn_ds$source))
+```
+
+
+Train the classifier on the selected training cells
+```{r}
+#logcounts(trn_ds) <- as.matrix(logcounts(trn_ds))
+model <- train_delayed_classifier(
+  x = t(logcounts(trn_ds)),
+  y = trn_ds$y_true,
+  pre_pruning_epoch = 5,post_pruning_epoch = 5,
+  accelerator = accelerator(cpu=TRUE),
+  valid_data = 0.1,
+  attention = TRUE,
+  #weight_decay = 1e-2
+)
+#luz_save(model,file.path(params$model_dir,"aba_mouse_cluster_classifier.luz"))
+luz_save(model,file.path(params$model_dir,"aba_mouse_subclass_attentive_classifier.luz"))
+```
+
+
+```{r}
+model <- train_delayed_classifier(
+  x = t(logcounts(trn_ds)),
+  y = trn_ds$y_true,
+  pre_pruning_epoch = 5,post_pruning_epoch = 5,
+  accelerator = accelerator(cpu=TRUE),
+  valid_data = 0.1,
+  attention = FALSE,
+  #weight_decay = 1e-2
+)
+luz_save(model,file.path(params$model_dir,"aba_mouse_subclass_classifier.luz"))
+```
+
+
+
+Show learning curve
+```{r}
+model <- luz_load(file.path(params$model_dir,"aba_mouse_subclass_classifier.luz"))
+plot(model)
+```
+
+
+Compute performance on the training set
+```{r}
+pred <- predict_delayed(t(logcounts(trn_ds)),model,accelerator = accelerator(cpu = TRUE))
+mean(trn_ds$y_true==colnames(pred)[max.col(pred)])
+```
+
+
+Contingency matrix
+```{r}
+table(trn_ds$y_true,colnames(pred)[max.col(pred)])
+```
+
+
+
+
+
+
+
+
+
+
+
+
+# Sex model
+
+Select a balanced subset of cell to learn a classifier
+```{r}
+# Load dataset
+allen <- HDF5Array::loadHDF5SummarizedExperiment(file.path(params$data_dir,"ABAMouseLearning"))
+allen <- allen[,!is.na(allen$donor_sex_label)]
+
+# Compute target labels to predict
+allen$y_true <- allen$donor_sex_label |> 
+  factor()
+
+# Normalize counts
+allen <- scuttle::logNormCounts(allen,center_size_factors=FALSE,size.factors=allen$sum/1e4)
+
+# Balance training set
+trn_ds <- local({
+  trn_ds <- allen[,allen$mlset %in% "trn"]
+  trn_ids <- splitAsList(colnames(trn_ds),paste(trn_ds$external_donor_name_label)) |>
+    lapply(sample,100,replace=TRUE) |>
+    unlist() |>
+    sample()
+  trn_ds[,trn_ids]
+})
+print(table(trn_ds$donor_sex_label))
+```
+
+
+Train the classifier on the selected training cells
+```{r}
+model <- train_delayed_classifier(
+  x = t(logcounts(trn_ds)),
+  y = trn_ds$y_true,
+  accelerator = accelerator(cpu=TRUE),
+  n = 32L,
+  valid_data = 0.1,
+  pre_pruning_epoch = 5L,
+  post_pruning_epoch = 5L,
+  auto_resume_path = file.path(params$model_dir,"aba_mouse_sex_classifier.tmp")
+)
+luz_save(model,file.path(params$model_dir,"aba_mouse_sex_classifier.luz"))
+```
+
+
+Show learning curve
+```{r}
+model <- luz_load(file.path(params$model_dir,"aba_mouse_sex_classifier.luz"))
+plot(model)
+```
+
+
+Compute performance on the training set
+```{r}
+pred <- predict_delayed(t(logcounts(trn_ds)),model,accelerator = accelerator(cpu = TRUE))
+mean(trn_ds$y_true==colnames(pred)[max.col(pred)])
+```
+
+
+Contingency matrix
+```{r}
+table(trn_ds$y_true,colnames(pred)[max.col(pred)])
+```
+

@@ -1,0 +1,78 @@
+---
+title: "scml_iris"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scml_iris}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r message=FALSE}
+library(scml)
+library(torch)
+library(luz)
+```
+
+
+
+# Train a classifier on iris dataset
+```{r message=FALSE}
+fm <- train_delayed_classifier(
+  data.matrix(iris[1:4]),
+  iris$Species,
+  pre_pruning_epoch = 100L,post_pruning_epoch = 100L,
+  batch_size = 150L,
+  valid_data = 0.1,
+  input_dropout_rate = 0.1,
+  accelerator = accelerator(cpu=TRUE)
+)
+```
+
+learning curves
+```{r}
+plot(fm)
+```
+
+performance on training set
+```{r eval=FALSE, warning=FALSE}
+pred <- predict_delayed(data.matrix(iris[1:4]),fm,accelerator = accelerator(cpu=TRUE))
+table(iris$Species,max.col(pred),useNA="i")
+```
+
+
+
+# Train an ordinal regressor on iris dataset
+```{r,message=FALSE}
+fm <- train_delayed_classifier(
+  data.matrix(iris[1:4]),
+  iris$Species,
+  y_type = "ordinal",
+  batch_size = 150L,
+  valid_data = 0.1,
+  input_dropout_rate = 0.25,
+  pre_pruning_epoch = 100L,post_pruning_epoch = 100L,
+  n = 50,
+  weight_decay = 0.9,
+  accelerator = accelerator(cpu=TRUE)
+)
+plot(fm)
+```
+show predictions
+```{r}
+pred <- predict_delayed(data.matrix(iris[1:4]),fm,accelerator = accelerator(cpu=TRUE))
+plot(pred~iris$Species)
+```
+
+
+
+
+
+
+

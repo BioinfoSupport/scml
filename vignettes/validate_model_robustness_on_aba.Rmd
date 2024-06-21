@@ -1,0 +1,112 @@
+---
+title: "scml_ABA_validate"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scml_ABA_validate}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+params:
+  data_dir: "/Users/prados/Desktop/wyss_project/data/"
+  model_dir: "/Users/prados/Desktop/wyss_project/data/"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+```{r message=FALSE}
+library(scml)
+library(torch)
+library(luz)
+library(ABAData)
+library(SingleCellExperiment)
+DelayedArray::setAutoBPPARAM(BiocParallel::MulticoreParam(workers = 6L,progressbar = TRUE))
+```
+
+
+
+
+
+# Train a Cell-type model on 10x data
+
+```{r}
+# Load ABA dataset
+allen <- HDF5Array::loadHDF5SummarizedExperiment(file.path(params$data_dir,"ABAMouseTENx","sce"))
+allen <- allen[,!is.na(allen$subclass_label)] # Keep only cells with an assigned sublcass
+allen <- allen[,!is.na(allen$cluster_label)]  # Keep only cells with an assigned cluster
+
+# Normalize counts
+allen <- scuttle::logNormCounts(allen,center_size_factors=FALSE,size.factors=allen$sum/1e4)
+
+# Compute target labels to predict
+allen$y_true <- paste(allen$class_label,allen$neighborhood_label,allen$subclass_label,sep=" --- ") |>
+  factor()
+stopifnot(all(!is.na(allen$y_true)))
+
+# Balance training set
+trn_ds <- local({
+  trn_ds <- allen[,(allen$mlset %in% "trn") & (allen$source %in% "10x")]
+  trn_ids <- splitAsList(colnames(trn_ds),paste(trn_ds$y_true,trn_ds$source)) |>
+    lapply(sample,500,replace=TRUE) |>
+    unlist() |>
+    sample()
+  trn_ds[,trn_ids]
+})
+print(table(trn_ds$y_true,trn_ds$source))
+```
+
+
+Train the classifier on the selected training cells
+```{r}
+model <- train_delayed_classifier(
+  x = t(logcounts(trn_ds)),
+  y = trn_ds$y_true,
+  pre_pruning_epoch = 5,post_pruning_epoch = 5,
+  accelerator = accelerator(cpu=TRUE),
+  valid_data = 0.1,
+  #weight_decay = 1e-4,
+  auto_resume_path = file.path(params$model_dir,"aba_mouse_10x_subclass_classifier.tmp")
+)
+luz_save(model,file.path(params$model_dir,"aba_mouse_10x_subclass_classifier.luz"))
+```
+
+
+Show learning curve
+```{r}
+model <- luz_load(file.path(params$model_dir,"aba_mouse_10x_subclass_classifier.luz"))
+plot(model)
+```
+
+
+Compute performance on the training set
+```{r}
+tst_ds <- allen[,(allen$source %in% "ssv4")]
+pred <- predict_delayed(t(logcounts(tst_ds)),model,accelerator = accelerator(cpu = TRUE))
+mean(tst_ds$y_true==colnames(pred)[max.col(pred)])
+```
+
+
+Contingency matrix
+```{r}
+table(tst_ds$y_true,colnames(pred)[max.col(pred)])
+```
+
+
+
+# Predict ABE dataset
+```{r}
+abe <- readRDS("/Users/prados/Library/CloudStorage/OneDrive-unige.ch/Documents - BioinfoSupport/home/prados/peralta/scml_validation_data/abe_et_al_2023_10x/L5ET-datav2-2_eObj_SpaceWaves.rds")
+abe <- as(abe,"SingleCellExperiment")
+assayNames(abe) <- "counts"
+abe$sum <- colSums(counts(abe))
+abe <- scuttle::logNormCounts(abe,center_size_factors=FALSE,size.factors=abe$sum/1e4)
+
+pred2 <- predict_delayed(t(logcounts(abe)),model,accelerator = accelerator(cpu = TRUE))
+table(colnames(pred2)[max.col(pred2)])
+```
+
+

@@ -1,0 +1,7 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+.Rhistory
+^scml\.Rproj$
+^doc$
+^Meta$
+^LICENSE\.md$

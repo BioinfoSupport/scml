@@ -1,0 +1,23 @@
+Package: scml
+Type: Package
+Title: Mining Single Cell with torch
+Version: 1.7.0
+Authors@R: c(
+  person("Julien","Prados",email = "julien.prados@unige.ch",role=c("aut","cre")),
+  person("Christian","Peralta",email = "christian.peralta@unige.ch",role="aut"),
+  person("Ludovic","Telley",email = "ludovic.telley@unil.ch",role="fnd"),
+  person("Gael","Barthet",email = "gael.barthet@wysscenter.ch",role="fnd"),
+  person("Andrea","Volterra",email = "andrea.volterra@wysscenter.ch",role="fnd"))
+Description: Train models on single-cell data
+Imports: torch(>= 0.13.0), luz, HDF5Array, DelayedArray, LowRankQP, stats, rlang, glue
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.1
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    R6
+Config/testthat/edition: 3
+VignetteBuilder: knitr
