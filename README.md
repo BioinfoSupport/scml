@@ -12,9 +12,9 @@ devtools::install_github("BioinfoSupport/scml")
 
 # Usage
 ```
-# Warning: the function expect genes as column, so you usually need to transpose your expression matric
+# Train a multi-class model
 fm <- scml::train_delayed_classifier(
-  cell_x_gene_matrix,                        # usually t(log2(RPM+1))
+  cell_x_gene_matrix,                        # usually t(log2(RPM+1)): expression matrix with genes as column, so often transposed
   cells_class,                               # a factor containing the class of the cells
   accelerator = luz::accelerator(cpu=TRUE),  # train on cpu
   input_dropout_rate = 0.75,                 # Amount of dropout during training
@@ -23,4 +23,9 @@ fm <- scml::train_delayed_classifier(
   pre_pruning_epoch = 5,                     # Number of epoch before pruning the model
   post_pruning_epoch = 5                     # Number of epoch after pruning the model
 )
+luz::luz_save(fm,"my_model.luz")
+
+# Predict new cells with the model
+pred <- predict(luz::luz_load("my_model.luz"),cell_x_gene_matrix) |> as_array()
+
 ```
