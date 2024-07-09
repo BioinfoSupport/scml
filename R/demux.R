@@ -13,7 +13,6 @@
 #' @param x numeric matrix (n x m) of m components
 #' @param y a vector with multiplexed expression profile of length n
 #' @return a vector of m positive coefficients summing to one.
-#' @import LowRankQP
 #' @export
 #'
 #' @examples
@@ -24,6 +23,7 @@
 #' alpha_pred <- demux(x,y)
 #' plot(x %*% alpha_pred,y,xlim=c(0,1),ylim=c(0,1));abline(0,1)
 demux <- function(x,y) {
+    rlang::check_installed("LowRankQP")
     x <- as.matrix(x)
     y <- as.vector(y)
     stopifnot(identical(nrow(x),length(y)))

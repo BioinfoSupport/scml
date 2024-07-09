@@ -38,24 +38,6 @@ y <- a[iris$Species,]
 w <- colSums(y)
 ```
 
-```{r}
-e <- matrix(ncol = 2,byrow = TRUE,c(
-  4L,1L,
-  4L,2L,
-  4L,3L
-)) |> torch_tensor()
-
-a <- matrix(c(
-  1,0,0,1,
-  0,1,0,1,
-  0,0,1,1,
-  0,0,0,1
-),4,4,byrow = TRUE)>0
-x <- data.matrix(iris[1:4])
-y <- a[iris$Species,]
-w <- colSums(y)
-```
-
 
 
 ```{r,eval=FALSE, fig.height=3, fig.width=3}

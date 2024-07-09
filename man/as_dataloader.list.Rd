@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{x}{the list to convert}
+
+\item{...}{additional arguments are passed to `as_dataloader`}
 }
 \description{
 Override generic function to handle list(x=DelayedArray,y=factor).

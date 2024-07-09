@@ -9,7 +9,7 @@ Authors@R: c(
   person("Gael","Barthet",email = "gael.barthet@wysscenter.ch",role="fnd"),
   person("Andrea","Volterra",email = "andrea.volterra@wysscenter.ch",role="fnd"))
 Description: Train models on single-cell data
-Imports: torch(>= 0.13.0), luz, HDF5Array, DelayedArray, LowRankQP, stats, rlang, glue
+Imports: torch(>= 0.13.0), luz, HDF5Array, DelayedArray, stats, rlang, glue
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -18,6 +18,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
+    LowRankQP,
     R6
 Config/testthat/edition: 3
 VignetteBuilder: knitr
