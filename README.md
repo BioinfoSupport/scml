@@ -64,8 +64,12 @@ fm <- scml::train_delayed_classifier(
 )
 luz::luz_save(fm,"my_model.luz")
 
+# Show learning curves
+plot(fm)
+
 # Predict new cells with the model
-pred <- predict(luz::luz_load("my_model.luz"),cell_x_gene_matrix) |> as_array()
+pred_scores <- predict_delayed(cell_x_gene_matrix,luz::luz_load("my_model.luz"))
+pred_label <- colnames(pred_scores)[max.col(pred_scores)]
 ```
 
 
