@@ -71,7 +71,37 @@ pred <- predict(luz::luz_load("my_model.luz"),cell_x_gene_matrix) |> as_array()
 ```
 
 
-## Model detail
+## Example with iris
+
+`iris` is a common toy dataset not related to single-cell transcriptomic.
+We use it here for demonstration purpose only. Also because `iris` is small
+we remove the `input_dropout=0`. We also increase the initial learning rate to
+`lr_start=0.1`.
+
+``` r
+# Learn the model
+fm <- scml::train_delayed_classifier(
+  data.matrix(iris[1:4]),    # Input matrix
+  iris$Species,              # Target class to predict
+  lr_start = 0.1,            # Increase initial learning rate
+  pre_pruning_epoch = 50L,   # Number of epoch before model pruning
+  post_pruning_epoch = 50L,  # Number of epoch after model pruning
+  batch_size = 150L,         # Number of sample per batch (here all dataset)
+  valid_data = 0.1,          # Keep 10% of samples for validation-set
+  input_dropout_rate = 0,    # Disable input dropout
+  accelerator = accelerator(cpu=TRUE) # Train on CPU
+)
+
+# Show learning curves
+plot(fm)
+
+# Predict each sample (training + validation set)
+pred_scores <- predict_delayed(data.matrix(iris[1:4]),fm,accelerator = accelerator(cpu=TRUE))
+pred_label <- colnames(pred_scores)[max.col(pred_scores)]
+
+# Show contingency table
+table(real_class=iris$Species,prediction=pred_label,useNA="i")
+```
 
 
 

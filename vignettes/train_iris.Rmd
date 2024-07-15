@@ -58,8 +58,6 @@ fm <- train_delayed_classifier(
   valid_data = 0.1,
   input_dropout_rate = 0.25,
   pre_pruning_epoch = 100L,post_pruning_epoch = 100L,
-  n = 50,
-  weight_decay = 0.9,
   accelerator = accelerator(cpu=TRUE)
 )
 plot(fm)
