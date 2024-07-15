@@ -8,8 +8,9 @@ Authors@R: c(
   person("Ludovic","Telley",email = "ludovic.telley@unil.ch",role="fnd"),
   person("Gael","Barthet",email = "gael.barthet@wysscenter.ch",role="fnd"),
   person("Andrea","Volterra",email = "andrea.volterra@wysscenter.ch",role="fnd"))
-Description: Train models on single-cell data
-Imports: torch(>= 0.13.0), luz, HDF5Array, DelayedArray, stats, rlang, glue
+Description: Train torch models on large single-cell data. In particular it is 
+  possible to train model with on-disk data.
+Imports: torch(>= 0.13.0), luz, HDF5Array, DelayedArray, stats, rlang, glue, methods
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

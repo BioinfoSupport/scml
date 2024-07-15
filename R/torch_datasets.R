@@ -92,8 +92,8 @@ h5_dataset <- torch::dataset(
 #' @description Override generic function to handle list(x=DelayedArray,y=factor).
 #' @param x the list to convert
 #' @param ... additional arguments are passed to `as_dataloader`
-#' @import luz
-#' @import DelayedArray
+#' @importFrom luz as_dataloader
+#' @importFrom methods is
 #' @export
 as_dataloader.list <- function(x,...) {
   if ((length(x)>=1L) && (is(x[[1L]],"DelayedArray") || is(x[[1L]],"Matrix"))) {

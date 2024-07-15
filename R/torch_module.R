@@ -3,11 +3,12 @@
 
 
 
-#' @description A nn_cosine_similarity layer, compute cos(w,x) or cos(w,|w|x) when attention is TRUE
 #' @title title nn_cosine_similarity
+#' @description A nn_cosine_similarity layer, compute cos(w,x) or cos(w,|w|x) when attention is TRUE
 #' @param in_features Input number of features.
 #' @param out_features Output number of features.
 #' @param eps a positive scalar value to avoid divisions by 0
+#' @param attention a logical, when true the module compute cos(w,|w|x), when FALSE it computes cos(w,x)
 #' @import torch
 #' @export
 #' @examples
