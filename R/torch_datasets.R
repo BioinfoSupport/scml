@@ -38,58 +38,54 @@ delayed_classifier_dataset <- torch::dataset(
 
 
 #' @title delayed_classifier_dataset
-#' @description A torch dataset which accepts DelayedArrays.
-#' @param x Expression matrix.
-#' @param y Cell type array.
+#' @description A torch dataset which accepts arrays stored .
+#' @param h5f a character vector of h5 filenames (recycled to maximum length of the arguments)
+#' @param name a character vector of array names in the h5 file (recycled to maximum length of the arguments)
+#' @param perm a list of integer vectors of array permuations to apply (recylced if needed).
+#' @param index a list of `alist()` for array subsetting
 #' @import torch
 #' @import HDF5Array
+#' @import rlang
 #' @export
 #' @examples
-#' #x <- h5_dataset("../../data/ABAMouseTENx/sce/assays.h5",name.x="/assay001*")
+#' m <- HDF5Array::writeHDF5Array(array(runif(100*50*3),c(100,50,3)))
+#' h5_dataset(m@seed@filepath,c(m@seed@name,m@seed@name))[1:3]
 h5_dataset <- torch::dataset(
   name = "h5_dataset",
-  get_array = function(x,name,row_idx=NULL,col_idx=NULL) {
-    if (!is.null(name)) {
-      x <- HDF5Array::HDF5Array(self$x,sub("[*]$","",name))
-      if (grepl("[*]$",name)) x <- t(x)
-    }
-    if (!is.null(row_idx)) x <- x[row_idx,,drop=FALSE]
-    if (!is.null(col_idx)) x <- x[,col_idx,drop=FALSE]
-    return(x)
+  get_array = function(h5f,name,perm,index) {
+    x <- HDF5Array::HDF5Array(h5f,name)
+    if (!is.null(perm)) x <- aperm(x,perm)
+    x <- inject(x[!!!index,drop=FALSE])
+    x
   },
-  initialize = function(x,y=NULL,name.x=NULL,name.y=NULL,row_idx=NULL,col_idx.x=NULL) {
-    self$x <- x
-    self$y <- y
-    self$name.x <- name.x
-    self$name.y <- name.y
-    self$row_idx <- row_idx
-    self$col_idx.x <- col_idx.x
+  initialize = function(h5f,name,perm=list(),index=list()) {
+    rlang::inform("h5_dataset is experimental and not well tested.")
+    self$h5f <- rep_len(h5f,max(length(h5f),length(name),length(perm),length(index)))
+    self$name <- rep_len(name,length(self$h5f))
+    self$index <- rep_len(index,length(self$h5f))
+    self$perm <- rep_len(perm,length(self$h5f))
 
-    # Check x and y dimensions are compatible
-    x <- self$get_array(self$x,self$name.x,self$row_idx,self$col_idx.x)
-    if (!is.null(self$y)) {
-      y <- self$get_array(self$y,self$name.y,self$row_idx)
-      stopifnot("x and y are expected to have the same number of row" = nrow(x)==nrow(y))
-    }
-    self$num_elt <- nrow(x)
+    # Check dimensions are compatible
+    self$num_elt <- mapply(self$get_array,self$h5f,self$name,self$perm,self$index) |>
+      sapply(nrow)
+    stopifnot("All array must have same number of row"=(min(self$num_elt)==max(self$num_elt)))
+    self$num_elt <- min(self$num_elt)
   },
   .length = function() {self$num_elt},
   .getbatch = function(index) {
-    x <- self$get_array(self$x,self$name.x,self$row_idx,self$col_idx)
-    x <- torch_tensor(as.matrix(x[index, , drop = FALSE]))
-    if (is.null(self$y)) {
-      return(list(x = x))
-    } else {
-      y <- self$get_array(self$y,self$name.y,self$row_idx)
-      y <- torch_tensor(as.matrix(y[index, , drop = FALSE]))
-      return(list(x = x, y = y))
-    }
+    A <- mapply(self$get_array,self$h5f,self$name,self$perm,self$index)
+    lapply(A,\(a){
+      idx <- c(alist(a,index,drop=FALSE),rep_len(list(quote(expr=)),length(dim(m))-1L))
+      torch_tensor(as.array(do.call(`[`,idx)))
+    })
   },
   .getitem = function(index) {
     if (is.list(index)) {index <- unlist(index)}
     self$.getbatch(index)
   }
 )
+
+
 
 
 #' @title as_dataloader.list

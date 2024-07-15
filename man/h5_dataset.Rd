@@ -4,23 +4,21 @@
 \alias{h5_dataset}
 \title{delayed_classifier_dataset}
 \usage{
-h5_dataset(
-  x,
-  y = NULL,
-  name.x = NULL,
-  name.y = NULL,
-  row_idx = NULL,
-  col_idx.x = NULL
-)
+h5_dataset(h5f, name, perm = list(), index = list())
 }
 \arguments{
-\item{x}{Expression matrix.}
+\item{h5f}{a character vector of h5 filenames (recycled to maximum length of the arguments)}
 
-\item{y}{Cell type array.}
+\item{name}{a character vector of array names in the h5 file (recycled to maximum length of the arguments)}
+
+\item{perm}{a list of integer vectors of array permuations to apply (recylced if needed).}
+
+\item{index}{a list of `alist()` for array subsetting}
 }
 \description{
-A torch dataset which accepts DelayedArrays.
+A torch dataset which accepts arrays stored .
 }
 \examples{
-#x <- h5_dataset("../../data/ABAMouseTENx/sce/assays.h5",name.x="/assay001*")
+m <- HDF5Array::writeHDF5Array(array(runif(100*50*3),c(100,50,3)))
+h5_dataset(m@seed@filepath,c(m@seed@name,m@seed@name))[1:3]
 }
