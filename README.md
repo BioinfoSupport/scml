@@ -50,8 +50,6 @@ devtools::install_github("BioinfoSupport/scml")
 
 ## Usage
 
-This is a basic example which shows you how to solve a common problem:
-
 ``` r
 # Train a multi-class model
 fm <- scml::train_delayed_classifier(
