@@ -58,7 +58,8 @@ nn_ordinal_regression_loss <- torch::nn_module(
 #' @export
 #' @import torch
 nnf_dag_loss <- function(pred,target,e,w,margin=1.0) {
-  #pred <- pred$to(device="cpu");target <- target$to(device="cpu");margin <- 1.0
+  #e <- matrix(ncol = 2,byrow = TRUE,c(4L,5L,5L,1L,5L,2L,4L,3L)) |> torch_tensor()
+  #w <- torch_ones(5L);pred <- torch_zeros(32,5L);target <- torch_randint(0L,2L,c(32L,5L));
   e <- torch_tensor(e)
   w <- torch_tensor(w)
   stopifnot(ncol(e)==2L)
