@@ -10,7 +10,7 @@ nn_dag_loss(e, w)
 \item{e}{a 2 column integer matrix (edge list of the DAG), with parent index
 in the first column and child index in the second}
 
-\item{w}{weight vector for each node of the dag (how much to penalize a node)}
+\item{w}{(m*n) float tensor of weights for each sample and node in the dag}
 }
 \description{
 Direct Acyclic Graph loss module

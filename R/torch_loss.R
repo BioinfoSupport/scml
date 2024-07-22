@@ -48,18 +48,20 @@ nn_ordinal_regression_loss <- torch::nn_module(
 
 #' @title nnf_dag_loss
 #' @description Direct Acyclic Graph loss function.
-#' @param pred Predicted values.
-#' @param target Target values.
+#' @param pred (m*n) float tensor of predicted values, where m is number of
+#'    sample in the batch and n is number of node in the dag.
+#' @param target a (m*n) binary tensor of target classes.
 #' @param e a 2 column integer matrix (edge list of the DAG), with parent index
-#'          in the first column and child index in the second
-#' @param w weight vector for each node of the dag (how much to penalize a node)
+#'    in the first column and child index in the second.
+#' @param w float tensor of weights compatible with (m*n) tensor (how much to
+#'    penalize a sample/node)
 #' @param margin a scalar positive value.
 #' @return loss value
 #' @export
 #' @import torch
 nnf_dag_loss <- function(pred,target,e,w,margin=1.0) {
   #e <- matrix(ncol = 2,byrow = TRUE,c(4L,5L,5L,1L,5L,2L,4L,3L)) |> torch_tensor()
-  #w <- torch_ones(5L);pred <- torch_zeros(32,5L);target <- torch_randint(0L,2L,c(32L,5L));
+  #pred <- torch_rand(32,5L);target <- torch_randint(0L,2L,c(32L,5L));w <- target$sum(1)
   e <- torch_tensor(e)
   w <- torch_tensor(w)
   stopifnot(ncol(e)==2L)
@@ -68,11 +70,7 @@ nnf_dag_loss <- function(pred,target,e,w,margin=1.0) {
   ub <- torch_full_like(pred,+Inf)$index_reduce(-1L,e[,1L],f2$masked_fill(!y2,+Inf),"amin",include_self = FALSE)
   lb <- torch_full_like(pred,-Inf)$index_reduce(-1L,e[,1L],f2$masked_fill(y2,-Inf),"amax",include_self = FALSE)
   l <- (lb + margin - ub)$clamp_min(0)
-
-  #nub <- torch_zeros_like(pred)$index_add(-1L,e[,1L],y2*w[e[,2L]])
-  #nlb <- torch_zeros_like(pred)$index_add(-1L,e[,1L],(!y2)*w[e[,2L]])
-
-  l$mv(w)$mean()
+  (l*w)$mean()
 }
 
 
@@ -80,11 +78,11 @@ nnf_dag_loss <- function(pred,target,e,w,margin=1.0) {
 #' @description Direct Acyclic Graph loss module
 #' @param e a 2 column integer matrix (edge list of the DAG), with parent index
 #'          in the first column and child index in the second
-#' @param w weight vector for each node of the dag (how much to penalize a node)
+#' @param w (m*n) float tensor of weights for each sample and node in the dag
 #' @export
 #' @import torch
 nn_dag_loss <- torch::nn_module(
-  "nn_ordinal_regression_loss",
+  "nn_dag_loss",
   initialize = function(e,w) {
     self$e <- e
     self$w <- w

@@ -7,14 +7,16 @@
 nnf_dag_loss(pred, target, e, w, margin = 1)
 }
 \arguments{
-\item{pred}{Predicted values.}
+\item{pred}{(m*n) float tensor of predicted values, where m is number of
+sample in the batch and n is number of node in the dag.}
 
-\item{target}{Target values.}
+\item{target}{a (m*n) binary tensor of target classes.}
 
 \item{e}{a 2 column integer matrix (edge list of the DAG), with parent index
-in the first column and child index in the second}
+in the first column and child index in the second.}
 
-\item{w}{weight vector for each node of the dag (how much to penalize a node)}
+\item{w}{float tensor of weights compatible with (m*n) tensor (how much to
+penalize a sample/node)}
 
 \item{margin}{a scalar positive value.}
 }
