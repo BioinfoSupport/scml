@@ -53,8 +53,8 @@ devtools::install_github("BioinfoSupport/scml")
 ``` r
 # Train a multi-class model
 fm <- scml::train_delayed_classifier(
-  cell_x_gene_matrix,                        # usually t(log2(RPM+1)): expression matrix with genes as column, so often transposed
-  cells_class,                               # a factor containing the class of the cells
+  t(logcounts(x)),                        # usually t(log2(RPM+1)): expression matrix with genes as column, so often transposed
+  x$cells_class,                               # a factor containing the class of the cells
   accelerator = luz::accelerator(cpu=TRUE),  # train on cpu
   input_dropout_rate = 0.75,                 # Amount of dropout during training
   batch_size = 512L,
