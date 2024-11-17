@@ -55,11 +55,10 @@ h5_dataset <- torch::dataset(
   get_array = function(h5f,name,perm,index) {
     x <- HDF5Array::HDF5Array(h5f,name)
     if (!is.null(perm)) x <- aperm(x,perm)
-    x <- inject(x[!!!index,drop=FALSE])
+    if (!is.null(index)) x <- inject(x[!!!index,drop=FALSE])
     x
   },
   initialize = function(h5f,name,perm=list(),index=list()) {
-    rlang::inform("h5_dataset is experimental and not well tested.")
     self$h5f <- rep_len(h5f,max(length(h5f),length(name),length(perm),length(index)))
     self$name <- rep_len(name,length(self$h5f))
     self$index <- rep_len(index,length(self$h5f))
@@ -75,7 +74,7 @@ h5_dataset <- torch::dataset(
   .getbatch = function(index) {
     A <- mapply(self$get_array,self$h5f,self$name,self$perm,self$index)
     lapply(A,\(a){
-      idx <- c(alist(a,index,drop=FALSE),rep_len(list(quote(expr=)),length(dim(m))-1L))
+      idx <- c(alist(a,index,drop=FALSE),rep_len(list(quote(expr=)),length(dim(a))-1L))
       torch_tensor(as.array(do.call(`[`,idx)))
     })
   },
