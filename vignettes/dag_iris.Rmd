@@ -19,56 +19,71 @@ library(luz)
 
 
 ```{r}
-e <- matrix(ncol = 2,byrow = TRUE,c(
+# Define hierarchy
+dag <- matrix(ncol = 2,byrow = TRUE,c(
   4L,5L,
   5L,1L,
   5L,2L,
   4L,3L
 )) |> torch_tensor()
 
+# Corresponding ancestor matrix
 a <- matrix(c(
   1,0,0,1,1,
   0,1,0,1,1,
-  0,0,1,1,0,
-  0,0,0,1,0,
-  0,0,0,1,1
-),5,5,byrow = TRUE)>0
+  0,0,1,1,0
+),3,5,byrow = TRUE)>0
+
+# training data
 x <- data.matrix(iris[1:4])
 y <- a[iris$Species,]
-w <- colSums(y)
 ```
-
 
 
 ```{r,eval=FALSE, fig.height=3, fig.width=3}
 library(tidygraph)
 library(ggraph)
 library(tidyverse)
-dag <- as_tbl_graph(as_array(e))
-dag |>
+DAG <- as_tbl_graph(as_array(dag))
+DAG |>
   mutate(name=row_number()) |>
   ggraph() +
   geom_edge_link(arrow = arrow(angle = 10,type = "closed")) +
   geom_node_label(aes(label=name))
 
 # ancestors matrix
-A <- t(as.matrix(igraph::as_adjacency_matrix(igraph::connect(dag,+Inf,mode = "out"))))>0
+A <- t(as.matrix(igraph::as_adjacency_matrix(igraph::connect(DAG,+Inf,mode = "out"))))>0
 diag(A) <- TRUE
 A+0
 ```
 
 
-```{r message=FALSE, include=FALSE}
+```{r}
+# loss weights
+balance_dag_weight <- function(dag,y) {
+  y <- torch_tensor(y)
+  w <- y$to(torch_float())$mean(1L)*torch_ones_like(y)
+  w2 <- w$index_select(-1L,dag[,2L]) # weight of the childs
+  y2 <- y$index_select(-1L,dag[,2L]) # label of the childs
+  Z <- torch_zeros_like(y,torch_float())
+  W <- Z$index_add(-1L,dag[,1L],w2) - Z$index_add(-1L,dag[,1L],y2*w2)
+  W
+}
+W <- balance_dag_weight(dag,y)
+```
+
+
+```{r fit,message=FALSE, include=FALSE}
 m <- nn_linear |>
-  setup(loss=nn_dag_loss(e,w),optimizer = optim_adam) |>
+  setup(loss=nn_dag_loss(dag,W),optimizer = optim_adam) |>
   set_hparams(in_features=4,out_features=ncol(y)) |>
-  set_opt_hparams(lr=0.1) |>
-  fit(data=list(x,y),accelerator=accelerator(cpu=TRUE),epoch=1000,dataloader_options=list(batch_size=200,drop_last=FALSE))
+  set_opt_hparams(lr=.5) |>
+  fit(data=list(x,y),accelerator=accelerator(cpu=TRUE),epoch=500,dataloader_options=list(batch_size=200,drop_last=FALSE))
 ```
 
 
 ```{r}
-p <- predict(m,x)
+p <- predict(m,x,accelerator = accelerator(cpu=TRUE))
 heatmap(as_array(p),Rowv = NA,Colv = NA,col=colorRampPalette(c("white","black"))(11))
 table(
   c(3,5)[max.col(as_array(p)[,c(3,5)])],

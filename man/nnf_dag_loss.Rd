@@ -4,7 +4,7 @@
 \alias{nnf_dag_loss}
 \title{nnf_dag_loss}
 \usage{
-nnf_dag_loss(pred, target, e, w, margin = 1)
+nnf_dag_loss(pred, target, dag, w = 1, margin = 1)
 }
 \arguments{
 \item{pred}{(m*n) float tensor of predicted values, where m is number of
@@ -12,7 +12,7 @@ sample in the batch and n is number of node in the dag.}
 
 \item{target}{a (m*n) binary tensor of target classes.}
 
-\item{e}{a 2 column integer matrix (edge list of the DAG), with parent index
+\item{dag}{a 2 column integer matrix (edge list of the DAG), with parent index
 in the first column and child index in the second.}
 
 \item{w}{float tensor of weights compatible with (m*n) tensor (how much to

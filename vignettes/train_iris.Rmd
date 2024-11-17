@@ -20,9 +20,13 @@ library(torch)
 library(luz)
 ```
 
-
+In this notebook, we show how to train a multiclass classifier and an ordinal regression model on `iris` dataset.
 
 # Train a classifier on iris dataset
+
+A multiclass model is trained below on 200 epoch over `iris` dataset keeping 10% of the data as validation set. The inut dimensionality being low, we limit the input drop out to 10%.
+
+
 ```{r message=FALSE}
 fm <- train_delayed_classifier(
   data.matrix(iris[1:4]),
@@ -36,11 +40,11 @@ fm <- train_delayed_classifier(
 ```
 
 learning curves
-```{r}
+```{r fig.height=6, fig.width=6}
 plot(fm)
 ```
 
-performance on training set
+performance on training(+valid) set
 ```{r eval=FALSE, warning=FALSE}
 pred <- predict_delayed(data.matrix(iris[1:4]),fm,accelerator = accelerator(cpu=TRUE))
 table(iris$Species,max.col(pred),useNA="i")
@@ -49,7 +53,10 @@ table(iris$Species,max.col(pred),useNA="i")
 
 
 # Train an ordinal regressor on iris dataset
-```{r,message=FALSE}
+
+To train an ordinal regression model we assume the 3 iris labels are ordered (for example it can represent the plant maturity, Baby, Young, Adult).
+
+```{r,message=FALSE,fig.height=3, fig.width=4}
 fm <- train_delayed_classifier(
   data.matrix(iris[1:4]),
   iris$Species,
@@ -60,10 +67,15 @@ fm <- train_delayed_classifier(
   pre_pruning_epoch = 100L,post_pruning_epoch = 100L,
   accelerator = accelerator(cpu=TRUE)
 )
+```
+
+learning curves
+```{r,message=FALSE,fig.height=3, fig.width=4}
 plot(fm)
 ```
-show predictions
-```{r}
+
+performance on training(+valid) set
+```{r,fig.height=4, fig.width=4}
 pred <- predict_delayed(data.matrix(iris[1:4]),fm,accelerator = accelerator(cpu=TRUE))
 plot(pred~iris$Species)
 ```
