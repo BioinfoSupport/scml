@@ -1,0 +1,126 @@
+---
+title: "VAE (variatinal autoencoder)"
+output: html_document
+date: "2024-10-22"
+---
+
+This notebook show an example implementation of simple VAE (Variatinal Auto-Encoder) in torch+luz
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+library(torch)
+library(luz)
+```
+
+
+# Define VAE model
+```{r}
+vae <- torch::nn_module(
+  initialize = function(input_dim,latent_dim=2L,lambda=1) {
+  	self$lambda <- lambda
+
+  	self$decoder <- nn_sequential(
+				nn_linear(latent_dim, 32),
+				nn_relu(),
+				nn_linear(32, 256),
+				nn_relu(),
+				nn_linear(256, input_dim)
+  	)
+  	
+  	self$encoder <- nn_module(
+  		initialize = function(input_dim, latent_dim) {
+  			self$compressor <- nn_sequential(
+  				nn_linear(input_dim, 256),
+  				nn_relu(),
+  				nn_linear(256, 32),
+  				nn_relu()
+  			)
+	  		self$mean <- nn_linear(32, latent_dim)
+	  		self$log_var = nn_linear(32, latent_dim)
+  		},
+  		forward = function(input) {
+  			z <- self$compressor(input)
+  			list(mean = self$mean(z), log_var = self$log_var(z))
+  		}
+  	)(input_dim,latent_dim)
+  },
+  
+  forward = function(input) {
+  	z <- self$encoder(input)
+  	output <- self$decoder(z$mean + torch_exp(0.5*z$log_var) * torch_randn_like(z$log_var))
+  	loss <- nnf_mse_loss(input,output,reduction="mean")
+  	kl <- z$mean$square() + z$log_var$exp() - z$log_var
+  	list(
+  		mean = z$mean,
+  		log_var = z$log_var,
+  		output = output,
+  		loss = loss,
+  		kl = kl$mean(1L)$sum()
+  	)
+  },
+  
+  loss = function(pred,target) {
+  	(pred$loss + self$lambda*pred$kl)
+  }
+)
+```
+
+
+# Define a useful luz metric
+```{r}
+luz_metric_custom <- luz_metric(
+	abbrev = "loss",
+	initialize = function() {
+		self$loss <- 0
+	},
+	update = function(pred,target) {
+		self$loss <- pred$loss
+	},
+	compute = function() {
+		self$loss$item()
+	}
+)
+```
+
+
+
+
+# Fit VAE on MNIST dataset
+```{r}
+ds <- torchvision::mnist_dataset("mnist",download = TRUE,transform = function(x) torch_flatten(x,start_dim = length(dim(x))-1L)/255)
+fm <- vae |>
+  setup(
+    optimizer = optim_adam,
+    metrics = list(luz_metric_custom())
+  ) |>
+  set_hparams(input_dim=28*28,lambda=0.001) |>
+  set_opt_hparams(weight_decay = 0, lr = 0.001) |>
+  fit(
+    epoch = 5,
+    data = ds,
+    dataloader_options = list(batch_size = 256, drop_last = FALSE, shuffle = FALSE,num_workers=0)
+  )
+```
+
+
+# Display latent space
+```{r}
+xy <- ds[seq(length(ds))]
+P <- fm$model(xy[[1]]$to(device="mps"))
+plot(as_array(P$mean),col=xy[[2]],pch=19,cex=0.2,asp=1)
+```
+
+
+# Generate an image from latent space coordinate
+```{r}
+img <- fm$model$decoder(torch_tensor(matrix(c(-2,1),1),device = "mps")) |>
+	torch_reshape(c(28,28)) |>
+	torch_clamp(min=0,max=1) |>
+	as_array() 
+plot(0:1,0:1,asp=1);rasterImage(img,0,0,1,1)
+```
+
+
+
+
+
