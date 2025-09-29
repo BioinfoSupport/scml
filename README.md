@@ -2,14 +2,11 @@
 
 # scml
 
-An R package 
-In particular, contains an helper function to train and predict multi-class and ordinal regression models on single-cell data.
+`scml` is an R package allowing to train and predict multi-class and ordinal regression models on single-cell data.
 
-
-
-`scml` is a R package with a Deep Learning architecture efficient to train models 
-on single-cell transcriptomic data. The models predictions can further be used 
-to annotate new data. 
+`scml` rely on a Deep Learning architecture to train models 
+on single-cell transcriptomic data that as been design for efficient generalization. 
+The trained models can further be used to annotate new single-cell data. 
 
 The models typically takes as 
 input `logcounts` expression matrix and train a multi-class classifier able to 
