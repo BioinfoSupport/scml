@@ -15,13 +15,18 @@ luz_callback_prune <- luz_callback(
   },
   on_train_batch_after_step = function() {
     if (ctx$epoch >= self$at_epoch) {
-      w <- ctx$model$parameters[[self$param]]
       if (is.null(self$prune_mask)) {
+        rlang::inform("Compute pruning mask")
+        w <- ctx$model$parameters[[self$param]]
         lo <- w$topk(self$n,largest = FALSE)[[1]][,self$n,drop=FALSE]
         hi <- w$topk(self$n,largest = TRUE)[[1]][,self$n,drop=FALSE]
         self$prune_mask <- (w>lo) & (w<hi)
       }
-      w[self$prune_mask] <- 0
+      #w[self$prune_mask] <- 0
+      with_no_grad({
+        ctx$model$parameters[[self$param]]$masked_fill_(self$prune_mask,0)
+        ctx$model$parameters[[self$param]]$grad$masked_fill_(self$prune_mask, 0)
+      })
     }
   }
 )

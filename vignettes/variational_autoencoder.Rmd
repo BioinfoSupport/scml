@@ -14,6 +14,7 @@ library(luz)
 
 
 # Define VAE model
+
 ```{r}
 vae <- torch::nn_module(
   initialize = function(input_dim,latent_dim=2L,lambda=1) {
@@ -67,6 +68,7 @@ vae <- torch::nn_module(
 
 
 # Define a useful luz metric
+
 ```{r}
 luz_metric_custom <- luz_metric(
 	abbrev = "loss",
@@ -86,6 +88,7 @@ luz_metric_custom <- luz_metric(
 
 
 # Fit VAE on MNIST dataset
+
 ```{r}
 ds <- torchvision::mnist_dataset("mnist",download = TRUE,transform = function(x) torch_flatten(x,start_dim = length(dim(x))-1L)/255)
 fm <- vae |>
@@ -104,6 +107,7 @@ fm <- vae |>
 
 
 # Display latent space
+
 ```{r}
 xy <- ds[seq(length(ds))]
 P <- fm$model(xy[[1]]$to(device="mps"))
@@ -112,6 +116,7 @@ plot(as_array(P$mean),col=xy[[2]],pch=19,cex=0.2,asp=1)
 
 
 # Generate an image from latent space coordinate
+
 ```{r}
 img <- fm$model$decoder(torch_tensor(matrix(c(-2,1),1),device = "mps")) |>
 	torch_reshape(c(28,28)) |>
