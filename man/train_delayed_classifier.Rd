@@ -43,6 +43,8 @@ train_delayed_classifier(
 
 \item{lr_end}{final learning rate (both at pruning and at last epoch)}
 
+\item{scaled_cosine}{whether to use scaled cosine in the first layer (cosine_similarity layer)}
+
 \item{initial_weights_path}{a character to specify a file to load initial weights from.
 Set to NA to disable.}
 
@@ -64,8 +66,6 @@ Set to NA to disable.}
 \item{callbacks}{a list of additional callbacks to use}
 
 \item{...}{additional parameters are passed to fit() call}
-
-\item{attention}{wether to use attention in the first layer (cosine_similarity layer)}
 }
 \description{
 Allows user-friendly training set up of a torch model.

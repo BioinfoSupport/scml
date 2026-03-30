@@ -2,7 +2,7 @@
 % Please edit documentation in R/torch_module.R
 \name{nn_bag_softmax_pool1d}
 \alias{nn_bag_softmax_pool1d}
-\title{nn_bag_pooling}
+\title{nn_bag_softmax_pool1d}
 \usage{
 nn_bag_softmax_pool1d(in_features, out_features)
 }
@@ -15,5 +15,5 @@ nn_bag_softmax_pool1d(in_features, out_features)
 Pool bag of elements with softmax weights
 }
 \examples{
-nn_bag_pool1d(32L,2L)(torch_rand(3L,5L,32L))
+nn_bag_softmax_pool1d(32L,2L)(torch_rand(3L,5L,32L))
 }

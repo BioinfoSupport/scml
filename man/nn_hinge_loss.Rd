@@ -8,6 +8,8 @@ nn_hinge_loss(margin = 1, reduction = "mean")
 }
 \arguments{
 \item{margin}{a scalar positive value.}
+
+\item{reduction}{name of the reduction to apply}
 }
 \description{
 Hinge regression loss module computing

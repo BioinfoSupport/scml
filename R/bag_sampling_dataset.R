@@ -3,16 +3,19 @@
 
 #' @title bag_sampling_classification_dataset
 #' @description Given labelled bags of instances, randomly generate new bags bag_size by random sampling random sample instances
-#' @param h5f a character vector of h5 filenames (recycled to maximum length of the arguments)
-#' @param name a character vector of array names in the h5 file (recycled to maximum length of the arguments)
-#' @param perm a list of integer vectors of array permuations to apply (recylced if needed).
-#' @param index a list of `alist()` for array subsetting
-#' @param transform a unary function to be apply on each element of the dataset
-#' @param transform_h5elt a unary function to be apply on the list of raw HDF5Array (e.g. permutation and subset indexing)
+#' @param x a generic 2D matrix object, with elements in rows and features as column
+#' @param sample_ids a factor whose length match nrow(x) defining bag of elements
+#' @param y a vector of target values for each bag, so the length must match nlevels(sample_ids)
+#' @param nbag number of random bags to generate in the dataset
+#' @param bag_size size of the bags to generate
+#' @param seed set seed for random sampling
+#' @param replace a logical, if TRUE the same elements might be samples multiple time.
+#' @param post_process a function to use to post_process the batches
+#' @param balanced a logical, if TRUE will generate the same number of bag for each target value
 #' @import torch
-#' @import tibble
-#' @import dplyr
-#' @import purrr
+#' @importFrom tibble tibble rowid_to_column
+#' @importFrom dplyr mutate inner_join select slice_sample slice_head arrange group_by reframe slice
+#' @importFrom purrr map
 #' @export
 #' @examples
 #' bags <- bag_sampling_classification_dataset(
@@ -21,14 +24,13 @@
 #'   gl(2,10),
 #'   nbag = 7L,bag_size=5L,balanced=TRUE
 #' )[1:3]
-
 bag_sampling_classification_dataset <- torch::dataset(
   name = "bag_sampling_dataset",
 
   initialize = function(x,sample_ids,y,nbag=1000L,bag_size=100L,seed=1234L,replace=TRUE,post_process=identity,balanced=TRUE) {
     sample_ids <- as.factor(sample_ids)
-    stopifnot(length(sample_ids)==nrow(x))
-    stopifnot(length(y)==nlevels(sample_ids))
+    stopifnot(identical(length(sample_ids),nrow(x)))
+    stopifnot(identical(length(y),nlevels(sample_ids)))
     stopifnot(all(!is.na(y)))
     self$post_process <- post_process
     self$x <- x
@@ -47,7 +49,7 @@ bag_sampling_classification_dataset <- torch::dataset(
     if (balanced) {
       self$bags <- self$samples |>
         select(sample_id,y) |>
-        slice_sample(prop=1) |>
+        slice_sample(prop=1) |> # randomize
         group_by(y) |>
         reframe(
           i = seq(nbag),

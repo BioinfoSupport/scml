@@ -47,9 +47,10 @@ nn_ordinal_regression_loss <- torch::nn_module(
 
 #' @title nnf_hinge_loss
 #' @description Hinge loss
-#' @param pred Predicted values.
-#' @param target Binary target value {-1,+1}
+#' @param input tensor of predicted values.
+#' @param target tensor of binary target -1 or +1
 #' @param margin a scalar positive value.
+#' @param reduction name of the reduction to apply
 #' @return hinge loss scalar value
 #' @export
 #' @import torch
@@ -66,6 +67,7 @@ nnf_hinge_loss <- function(input,target,margin=1.0,reduction=c("mean","sum","non
 #' @title nn_hinge_loss
 #' @description Hinge regression loss module computing
 #' @param margin a scalar positive value.
+#' @param reduction name of the reduction to apply
 #' @export
 #' @import torch
 #' @examples

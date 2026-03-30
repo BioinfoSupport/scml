@@ -42,6 +42,7 @@ nn_cosine_similarity <- nn_module(
 #' @param input_dropout_rate Dropout rate to apply on input values when training
 #' @param n A numeric integer vector of length>0 specifying the number of feature in each internal layer.
 #' @param dropout_rates A numeric vector of length>0 of dropouts to apply before each internal layer.
+#' @param scaled_cosine A logical to define the type of nn_cosine_similarity layer to use.
 #' @param ... additional parameters are passed to nn_linear_rescale() when creating first layer.
 #' @import torch
 #' @export
@@ -82,13 +83,13 @@ nn_cell_scorer <- torch::nn_module(
 
 
 #' @description Pool bag of elements with softmax weights
-#' @title nn_bag_pooling
+#' @title nn_bag_softmax_pool1d
 #' @param in_features number of input dimensions
 #' @param out_features number of output dimensions
 #' @import torch
 #' @export
 #' @examples
-#' nn_bag_pool1d(32L,2L)(torch_rand(3L,5L,32L))
+#' nn_bag_softmax_pool1d(32L,2L)(torch_rand(3L,5L,32L))
 nn_bag_softmax_pool1d <- nn_module(
   "bag_pooling",
   initialize = function(in_features,out_features) {

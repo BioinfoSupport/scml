@@ -1,7 +1,10 @@
 ---
 title: "VAE (variatinal autoencoder)"
-output: html_document
-date: "2024-10-22"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scml_iris}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 This notebook show an example implementation of simple VAE (Variatinal Auto-Encoder) in torch+luz
@@ -90,10 +93,10 @@ luz_metric_custom <- luz_metric(
 # Fit VAE on MNIST dataset
 
 ```{r}
-ds <- torchvision::mnist_dataset("mnist",download = TRUE,transform = function(x) torch_flatten(x,start_dim = length(dim(x))-1L)/255)
+ds <- torchvision::mnist_dataset("mnist",download = TRUE,transform = function(x) torch_tensor(x/255)$reshape(c(784,-1))$permute(2:1))
 fm <- vae |>
   setup(
-    optimizer = optim_adam,
+    optimizer = optim_adamw,
     metrics = list(luz_metric_custom())
   ) |>
   set_hparams(input_dim=28*28,lambda=0.001) |>
@@ -101,7 +104,8 @@ fm <- vae |>
   fit(
     epoch = 5,
     data = ds,
-    dataloader_options = list(batch_size = 256, drop_last = FALSE, shuffle = FALSE,num_workers=0)
+    dataloader_options = list(batch_size = 256, drop_last = FALSE, shuffle = FALSE,num_workers=0),
+    accelerator = accelerator(cpu = TRUE)
   )
 ```
 
@@ -109,16 +113,18 @@ fm <- vae |>
 # Display latent space
 
 ```{r}
-xy <- ds[seq(length(ds))]
-P <- fm$model(xy[[1]]$to(device="mps"))
-plot(as_array(P$mean),col=xy[[2]],pch=19,cex=0.2,asp=1)
+ds_embed <- coro::generator(function(i) {for(xy in i) {yield(fm$model$encoder(xy[[1]])$mean)}})
+ds_targets <- coro::generator(function(i) {for(xy in i) {yield(xy[[2]])}})
+z <- dataloader(ds,batch_size = 64L) |> ds_embed() |> coro::collect() |> torch_cat() |> as_array()
+y <- dataloader(ds,batch_size = 64L) |> ds_targets() |> coro::collect() |> torch_cat() |> as_array()
+plot(z,col=y,pch=19,cex=0.2,asp=1);legend("topleft",legend=0:9,col=1:10,pch=19)
 ```
 
 
 # Generate an image from latent space coordinate
 
 ```{r}
-img <- fm$model$decoder(torch_tensor(matrix(c(-2,1),1),device = "mps")) |>
+img <- fm$model$decoder(torch_tensor(matrix(c(-2,0.5),1))) |>
 	torch_reshape(c(28,28)) |>
 	torch_clamp(min=0,max=1) |>
 	as_array() 

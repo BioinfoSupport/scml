@@ -5,3 +5,5 @@
 ^doc$
 ^Meta$
 ^LICENSE\.md$
+mnist/
+TODO.txt

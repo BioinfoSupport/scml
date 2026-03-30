@@ -25,6 +25,8 @@ nn_cell_scorer(
 
 \item{dropout_rates}{A numeric vector of length>0 of dropouts to apply before each internal layer.}
 
+\item{scaled_cosine}{A logical to define the type of nn_cosine_similarity layer to use.}
+
 \item{...}{additional parameters are passed to nn_linear_rescale() when creating first layer.}
 }
 \description{

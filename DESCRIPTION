@@ -1,7 +1,7 @@
 Package: scml
 Type: Package
 Title: Mining Single Cell with torch
-Version: 1.8.0
+Version: 1.9.0
 Authors@R: c(
   person("Julien","Prados",email = "julien.prados@unige.ch",role=c("aut","cre")),
   person("Christian","Peralta",email = "christian.peralta@unige.ch",role="aut"),
@@ -10,7 +10,7 @@ Authors@R: c(
   person("Andrea","Volterra",email = "andrea.volterra@wysscenter.ch",role="fnd"))
 Description: Train torch models on large single-cell data. In particular it is 
   possible to train model with on-disk data.
-Imports: torch(>= 0.13.0), luz, HDF5Array, DelayedArray, stats, rlang, glue, methods
+Imports: torch(>= 0.13.0), luz, HDF5Array, DelayedArray, stats, rlang, glue, methods, dplyr, purrr, tibble
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

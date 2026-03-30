@@ -56,7 +56,7 @@ predict_delayed <- function(N, luz_model, ignore.case = FALSE, batch_size = 1024
 #' @param y_type type of target factor: either nominal or ordinal (default: nominal)
 #' @param C the cost matrix to use in ordinal regression
 #' @param callbacks a list of additional callbacks to use
-#' @param attention wether to use attention in the first layer (cosine_similarity layer)
+#' @param scaled_cosine whether to use scaled cosine in the first layer (cosine_similarity layer)
 #' @param ... additional parameters are passed to fit() call
 #' @importFrom stats stepfun
 #' @importFrom luz fit set_opt_hparams set_hparams setup luz_metric_accuracy luz_callback_lr_scheduler luz_callback_auto_resume luz_load_model_weights

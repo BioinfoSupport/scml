@@ -14,10 +14,6 @@ h5_dataset(h5f, name, transform = identity, transform_h5elt = identity)
 \item{transform}{a unary function to be apply on each element of the dataset}
 
 \item{transform_h5elt}{a unary function to be apply on the list of raw HDF5Array (e.g. permutation and subset indexing)}
-
-\item{perm}{a list of integer vectors of array permuations to apply (recylced if needed).}
-
-\item{index}{a list of `alist()` for array subsetting}
 }
 \description{
 A torch dataset which accepts arrays stored .

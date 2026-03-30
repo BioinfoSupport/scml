@@ -7,11 +7,13 @@
 nnf_hinge_loss(input, target, margin = 1, reduction = c("mean", "sum", "none"))
 }
 \arguments{
-\item{target}{Binary target value {-1,+1}}
+\item{input}{tensor of predicted values.}
+
+\item{target}{tensor of binary target -1 or +1}
 
 \item{margin}{a scalar positive value.}
 
-\item{pred}{Predicted values.}
+\item{reduction}{name of the reduction to apply}
 }
 \value{
 hinge loss scalar value

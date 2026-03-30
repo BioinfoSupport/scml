@@ -5,8 +5,6 @@
 #' @description A torch dataset which accepts arrays stored .
 #' @param h5f a character vector of h5 filenames (recycled to maximum length of the arguments)
 #' @param name a character vector of array names in the h5 file (recycled to maximum length of the arguments)
-#' @param perm a list of integer vectors of array permuations to apply (recylced if needed).
-#' @param index a list of `alist()` for array subsetting
 #' @param transform a unary function to be apply on each element of the dataset
 #' @param transform_h5elt a unary function to be apply on the list of raw HDF5Array (e.g. permutation and subset indexing)
 #' @import torch

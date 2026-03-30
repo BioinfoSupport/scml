@@ -17,24 +17,32 @@ bag_sampling_classification_dataset(
 )
 }
 \arguments{
-\item{h5f}{a character vector of h5 filenames (recycled to maximum length of the arguments)}
+\item{x}{a generic 2D matrix object, with elements in rows and features as column}
 
-\item{name}{a character vector of array names in the h5 file (recycled to maximum length of the arguments)}
+\item{sample_ids}{a factor whose length match nrow(x) defining bag of elements}
 
-\item{perm}{a list of integer vectors of array permuations to apply (recylced if needed).}
+\item{y}{a vector of target values for each bag, so the length must match nlevels(sample_ids)}
 
-\item{index}{a list of `alist()` for array subsetting}
+\item{nbag}{number of random bags to generate in the dataset}
 
-\item{transform}{a unary function to be apply on each element of the dataset}
+\item{bag_size}{size of the bags to generate}
 
-\item{transform_h5elt}{a unary function to be apply on the list of raw HDF5Array (e.g. permutation and subset indexing)}
+\item{seed}{set seed for random sampling}
+
+\item{replace}{a logical, if TRUE the same elements might be samples multiple time.}
+
+\item{post_process}{a function to use to post_process the batches}
+
+\item{balanced}{a logical, if TRUE will generate the same number of bag for each target value}
 }
 \description{
 Given labelled bags of instances, randomly generate new bags bag_size by random sampling random sample instances
 }
 \examples{
-x <- Matrix(0,3000,34)
-sample_ids <- gl(3,1000)
-y <- c("a","b","a")
-bag_sampling_classification_dataset(x,sample_ids,y,nbag=10,bag_size=100)[1:3]
+bags <- bag_sampling_classification_dataset(
+  matrix((1:1000-1)\%\%100+1,100,10),
+  gl(20,5),
+  gl(2,10),
+  nbag = 7L,bag_size=5L,balanced=TRUE
+)[1:3]
 }
