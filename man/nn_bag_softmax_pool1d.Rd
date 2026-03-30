@@ -15,5 +15,5 @@ nn_bag_softmax_pool1d(in_features, out_features)
 Pool bag of elements with softmax weights
 }
 \examples{
-nn_bag_softmax_pool1d(32L,2L)(torch_rand(3L,5L,32L))
+nn_bag_softmax_pool1d(32L,2L)(torch::torch_rand(3L,5L,32L))
 }

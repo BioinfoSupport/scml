@@ -89,7 +89,7 @@ nn_cell_scorer <- torch::nn_module(
 #' @import torch
 #' @export
 #' @examples
-#' nn_bag_softmax_pool1d(32L,2L)(torch_rand(3L,5L,32L))
+#' nn_bag_softmax_pool1d(32L,2L)(torch::torch_rand(3L,5L,32L))
 nn_bag_softmax_pool1d <- nn_module(
   "bag_pooling",
   initialize = function(in_features,out_features) {
