@@ -1,4 +1,6 @@
 
+
+
 #' @title bag_sampling_classification_dataset
 #' @description Given labelled bags of instances, randomly generate new bags bag_size by random sampling random sample instances
 #' @param h5f a character vector of h5 filenames (recycled to maximum length of the arguments)
@@ -12,16 +14,18 @@
 #' @import rlang
 #' @export
 #' @examples
-#' x <- Matrix(0,3000,34)
-#' sample_ids <- gl(3,1000)
-#' y <- c("a","b","a")
-#' bag_sampling_classification_dataset(x,sample_ids,y,nbag=10,bag_size=100)[1:3]
+#' bags <- bag_sampling_classification_dataset(
+#'   matrix((1:1000-1)%%100+1,100,10),
+#'   gl(20,5),
+#'   gl(2,10),
+#'   nbag = 7L,bag_size=5L,balanced=TRUE
+#' )[1:3]
+
 bag_sampling_classification_dataset <- torch::dataset(
   name = "bag_sampling_dataset",
 
   initialize = function(x,sample_ids,y,nbag=1000L,bag_size=100L,seed=1234L,replace=TRUE,post_process=identity,balanced=TRUE) {
     sample_ids <- as.factor(sample_ids)
-    y <- as.factor(y)
     stopifnot(length(sample_ids)==nrow(x))
     stopifnot(length(y)==nlevels(sample_ids))
     stopifnot(all(!is.na(y)))
@@ -70,7 +74,11 @@ bag_sampling_classification_dataset <- torch::dataset(
   .getbatch = function(index) {
     B <- dplyr::slice(self$bags,index)
     list(
-      x = self$x[B$cells,] |> as.matrix() |> torch_tensor() |> torch_reshape(c(dim(B$cells),ncol(self$x))),
+      x = local({
+        x <- self$x[B$cells,] |> as.matrix()
+        dim(x) <- c(dim(B$cells),ncol(self$x))
+        torch_tensor(x)
+      }),
       y = torch_tensor(B$y)
     ) |> self$post_process()
   },
@@ -79,3 +87,4 @@ bag_sampling_classification_dataset <- torch::dataset(
     self$.getbatch(index)
   }
 )
+
