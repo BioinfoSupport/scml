@@ -13,7 +13,7 @@ train_delayed_classifier(
   prune_size = pmin(50L, ncol(x)),
   lr_start = 0.001,
   lr_end = 1e-05,
-  attention = TRUE,
+  scaled_cosine = TRUE,
   initial_weights_path = NA,
   autoresume_path = NA,
   n = c(4096L, 256L),
@@ -43,8 +43,6 @@ train_delayed_classifier(
 
 \item{lr_end}{final learning rate (both at pruning and at last epoch)}
 
-\item{attention}{wether to use attention in the first layer (cosine_similarity layer)}
-
 \item{initial_weights_path}{a character to specify a file to load initial weights from.
 Set to NA to disable.}
 
@@ -66,6 +64,8 @@ Set to NA to disable.}
 \item{callbacks}{a list of additional callbacks to use}
 
 \item{...}{additional parameters are passed to fit() call}
+
+\item{attention}{wether to use attention in the first layer (cosine_similarity layer)}
 }
 \description{
 Allows user-friendly training set up of a torch model.

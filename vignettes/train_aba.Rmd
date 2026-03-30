@@ -107,7 +107,7 @@ model <- train_delayed_classifier(
   pre_pruning_epoch = 5,post_pruning_epoch = 5,
   accelerator = accelerator(cpu=TRUE),
   valid_data = 0.1,
-  attention = TRUE,
+  scaled_cosine = TRUE,
   #weight_decay = 1e-2
 )
 #luz_save(model,file.path(params$model_dir,"aba_mouse_cluster_classifier.luz"))
@@ -122,7 +122,7 @@ model <- train_delayed_classifier(
   pre_pruning_epoch = 5,post_pruning_epoch = 5,
   accelerator = accelerator(cpu=TRUE),
   valid_data = 0.1,
-  attention = FALSE,
+  scaled_cosine = FALSE,
   #weight_decay = 1e-2
 )
 luz_save(model,file.path(params$model_dir,"aba_mouse_subclass_classifier.luz"))

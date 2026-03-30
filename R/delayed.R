@@ -64,7 +64,7 @@ predict_delayed <- function(N, luz_model, ignore.case = FALSE, batch_size = 1024
 train_delayed_classifier <- function(
     x, y, pre_pruning_epoch = 25L, post_pruning_epoch = 25L,
     batch_size = 256L, prune_size = pmin(50L, ncol(x)),
-    lr_start = 1e-3, lr_end = 1e-5,attention=TRUE,
+    lr_start = 1e-3, lr_end = 1e-5,scaled_cosine=TRUE,
     initial_weights_path = NA, autoresume_path = NA,
     n = c(4096L,256L), dropout_rates = 0.25,
     weight_decay = 0, input_dropout_rate = 0.5, y_type=c("nominal","ordinal"),C=NULL,
@@ -96,7 +96,7 @@ train_delayed_classifier <- function(
       metrics = metrics,
       loss = loss
     ) |>
-    set_hparams(feature_names = colnames(x), class_names = class_names,input_dropout_rate = input_dropout_rate, n = n, dropout_rates = dropout_rates, attention = attention) |>
+    set_hparams(feature_names = colnames(x), class_names = class_names,input_dropout_rate = input_dropout_rate, n = n, dropout_rates = dropout_rates, scaled_cosine = scaled_cosine) |>
     set_opt_hparams(weight_decay = weight_decay, lr = 1) |>
     fit(
       epoch = pre_pruning_epoch + post_pruning_epoch,

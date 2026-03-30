@@ -21,8 +21,8 @@ its architecture and in its training process, see **Figure 1**.
 
 The architecture is efficient on single-cell data because of these characteristics:
 
-1- `scml` use cosine similarity in the first layer to normalize input data 
-    combined with an attention mechanism.
+1- `scml` use scaled cosine similarity in the first layer to normalize input 
+    data combined.
 
 2- The training procedure is done in two phases, with a weight pruning on the 
    first layer at end the first phase. The pruning keep for each cosine node 

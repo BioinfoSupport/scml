@@ -14,7 +14,7 @@ Imports: torch(>= 0.13.0), luz, HDF5Array, DelayedArray, stats, rlang, glue, met
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.3
 Suggests: 
     knitr,
     rmarkdown,

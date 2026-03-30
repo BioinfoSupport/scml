@@ -4,26 +4,26 @@
 
 
 #' @title title nn_cosine_similarity
-#' @description A nn_cosine_similarity layer, compute cos(w,x) or cos(w,|w|x) when attention is TRUE
+#' @description A nn_cosine_similarity layer, compute cos(w,x) or cos(w,|w|x) when scaled is TRUE
 #' @param in_features Input number of features.
 #' @param out_features Output number of features.
 #' @param eps a positive scalar value to avoid divisions by 0
-#' @param attention a logical, when true the module compute cos(w,|w|x), when FALSE it computes cos(w,x)
+#' @param scaled a logical, when true the module compute cos(w,|w|x), when FALSE it computes cos(w,x)
 #' @import torch
 #' @export
 #' @examples
 #' p <- nn_cosine_similarity(10,5)(torch::torch_rand(32,10))
-#' p <- nn_cosine_similarity(10,5,attention=TRUE)(torch::torch_rand(32,10))
+#' p <- nn_cosine_similarity(10,5,scaled=TRUE)(torch::torch_rand(32,10))
 nn_cosine_similarity <- nn_module(
   inherit = nn_linear,
-  initialize = function(in_features,out_features,eps=1e-8,attention=FALSE) {
+  initialize = function(in_features,out_features,eps=1e-8,scaled=FALSE) {
     super$initialize(in_features = in_features, out_features = out_features,bias = FALSE)
     self$eps <- eps
-    self$attention <- attention
+    self$scaled <- scaled
   },
   forward = function(x) {
     w_norm <- self$weight$norm(dim=-1L,p=2,keepdim = TRUE)$clamp_min(self$eps)
-    if (self$attention) {
+    if (self$scaled) {
       wx_norm <- nnf_linear(x,self$weight)$norm(dim=-1L,p = 2,keepdim = TRUE)$clamp_min(self$eps)
       return(nnf_linear(x/wx_norm,self$weight*self$weight$abs()/w_norm)$clamp(-1,1))
     } else {
@@ -49,7 +49,7 @@ nn_cosine_similarity <- nn_module(
 #' nn_cell_scorer(1:4,1:3)(torch::torch_rand(32,4))
 nn_cell_scorer <- torch::nn_module(
   inherit = nn_sequential,
-  initialize = function(feature_names,class_names,input_dropout_rate=0.5,n=256L,dropout_rates=0.25,...) {
+  initialize = function(feature_names,class_names,input_dropout_rate=0.5,n=256L,dropout_rates=0.25,scaled_cosine=TRUE,...) {
     super$initialize()
 
     # Process parameters
@@ -63,7 +63,7 @@ nn_cell_scorer <- torch::nn_module(
 
     # First layer
     self$add_module("input_dropout",nn_dropout(input_dropout_rate))
-    self$add_module("cosine",nn_cosine_similarity(in_features = length(self$feature_names),out_features = n[1L],...))
+    self$add_module("cosine",nn_cosine_similarity(in_features = length(self$feature_names),out_features = n[1L],scaled=scaled_cosine,...))
 
     # Internal layers
     for(i in seq_along(n)[-1L]) {
@@ -78,5 +78,28 @@ nn_cell_scorer <- torch::nn_module(
   }
 )
 
+
+
+
+#' @description Pool bag of elements with softmax weights
+#' @title nn_bag_pooling
+#' @param in_features number of input dimensions
+#' @param out_features number of output dimensions
+#' @import torch
+#' @export
+#' @examples
+#' nn_bag_pool1d(32L,2L)(torch_rand(3L,5L,32L))
+nn_bag_softmax_pool1d <- nn_module(
+  "bag_pooling",
+  initialize = function(in_features,out_features) {
+    self$nn_score <- nn_linear(in_features,out_features)
+    self$nn_weight <- nn_linear(in_features,1L,bias = FALSE)
+  },
+  forward = function(input) {
+    s <- self$nn_score(input) # Score each cell
+    w <- self$nn_weight(input)$softmax(dim=-2L)
+    sum(w * s,dim=-2L)
+  }
+)
 
 

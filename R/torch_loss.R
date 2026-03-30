@@ -45,6 +45,44 @@ nn_ordinal_regression_loss <- torch::nn_module(
 
 
 
+#' @title nnf_hinge_loss
+#' @description Hinge loss
+#' @param pred Predicted values.
+#' @param target Binary target value {-1,+1}
+#' @param margin a scalar positive value.
+#' @return hinge loss scalar value
+#' @export
+#' @import torch
+nnf_hinge_loss <- function(input,target,margin=1.0,reduction=c("mean","sum","none")) {
+  l <- torch_clamp(margin - input$flatten()*target,min=0.0)
+  switch(match.arg(reduction),
+    "mean" = l$mean(),
+    "sum"  = l$sum(),
+    "none" = l
+  )
+}
+
+
+#' @title nn_hinge_loss
+#' @description Hinge regression loss module computing
+#' @param margin a scalar positive value.
+#' @export
+#' @import torch
+#' @examples
+#' nn_hinge_loss(reduction="none")(torch_tensor(c(-2,-0.5,+0.7,3)),torch_tensor(c(-1,-1,+1,+1)))
+nn_hinge_loss <- torch::nn_module(
+  "nn_hinge_loss",
+  initialize = function(margin=1.0,reduction="mean") {
+    self$margin <- margin
+    self$reduction = reduction
+  },
+  forward = function(input, target){
+    nnf_hinge_loss(input, target, margin = self$margin, reduction = self$reduction)
+  }
+)
+
+
+
 
 #' @title nnf_dag_loss
 #' @description Direct Acyclic Graph loss function.

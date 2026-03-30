@@ -10,6 +10,7 @@ nn_cell_scorer(
   input_dropout_rate = 0.5,
   n = 256L,
   dropout_rates = 0.25,
+  scaled_cosine = TRUE,
   ...
 )
 }

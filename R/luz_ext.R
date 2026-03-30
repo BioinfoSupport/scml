@@ -1,5 +1,28 @@
 
 
+#' @title luz_metric_hinge_accuracy
+#' @description
+#' Accuracy metric for 1d outputs and numeric hinge targets (-1,+1)
+#' @import torch
+#' @importFrom luz luz_metric
+#' @export
+luz_metric_hinge_accuracy <- luz_metric(
+  abbrev = "HingeAcc",
+  initialize = function() {
+    self$correct <- 0
+    self$total <- 0
+  },
+  update = function(preds, target) {
+    correct <- (sign(preds$flatten()) == sign(target$flatten()))$
+      sum()$
+      item()
+    self$correct <- self$correct + correct
+    self$total <- self$total + target$numel()
+  },
+  compute = function() {self$correct/self$total}
+)
+
+
 #' @title luz_callback_prune
 #' @param param Model parameters
 #' @param n number of top/bottom features to keep after pruning
