@@ -10,7 +10,7 @@ Authors@R: c(
   person("Andrea","Volterra",email = "andrea.volterra@wysscenter.ch",role="fnd"))
 Description: Train torch models on large single-cell data. In particular it is 
   possible to train model with on-disk data.
-Imports: torch(>= 0.13.0), luz, HDF5Array, DelayedArray, stats, rlang, glue, methods, dplyr, purrr, tibble
+Imports: torch(>= 0.16.3), luz, HDF5Array, DelayedArray, stats, rlang, glue, methods, dplyr, purrr, tibble
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -20,6 +20,8 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     LowRankQP,
-    R6
+    R6,
+    coro,
+    torchvision
 Config/testthat/edition: 3
 VignetteBuilder: knitr

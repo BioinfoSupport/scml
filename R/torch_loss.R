@@ -71,7 +71,9 @@ nnf_hinge_loss <- function(input,target,margin=1.0,reduction=c("mean","sum","non
 #' @export
 #' @import torch
 #' @examples
-#' nn_hinge_loss(reduction="none")(torch_tensor(c(-2,-0.5,+0.7,3)),torch_tensor(c(-1,-1,+1,+1)))
+#' preds <- torch::torch_tensor(c(-2,-0.5,+0.7,3))
+#' targets <- torch::torch_tensor(c(-1,-1,+1,+1))
+#' nn_hinge_loss(reduction="none")(preds,targets)
 nn_hinge_loss <- torch::nn_module(
   "nn_hinge_loss",
   initialize = function(margin=1.0,reduction="mean") {

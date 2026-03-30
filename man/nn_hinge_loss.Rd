@@ -15,5 +15,7 @@ nn_hinge_loss(margin = 1, reduction = "mean")
 Hinge regression loss module computing
 }
 \examples{
-nn_hinge_loss(reduction="none")(torch_tensor(c(-2,-0.5,+0.7,3)),torch_tensor(c(-1,-1,+1,+1)))
+preds <- torch::torch_tensor(c(-2,-0.5,+0.7,3))
+targets <- torch::torch_tensor(c(-1,-1,+1,+1))
+nn_hinge_loss(reduction="none")(preds,targets)
 }

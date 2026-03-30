@@ -2,7 +2,7 @@
 title: "VAE (variatinal autoencoder)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{scml_iris}
+  %\VignetteIndexEntry{scml_vae}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
