@@ -11,7 +11,8 @@
 #' @param transform_h5elt a unary function to be apply on the list of raw HDF5Array (e.g. permutation and subset indexing)
 #' @import torch
 #' @import tibble
-#' @import rlang
+#' @import dplyr
+#' @import purrr
 #' @export
 #' @examples
 #' bags <- bag_sampling_classification_dataset(
