@@ -15,7 +15,7 @@
 #' @import torch
 #' @importFrom tibble tibble rowid_to_column
 #' @importFrom dplyr mutate inner_join select slice_sample group_by ungroup slice summarize n if_else
-#' @importFrom purrr map
+#' @importFrom purrr map map2
 #' @importFrom tidyr unnest
 #' @export
 #' @examples
