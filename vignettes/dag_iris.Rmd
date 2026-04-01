@@ -75,10 +75,12 @@ W <- balance_dag_weight(dag,y)
 
 ```{r fit,message=FALSE, include=FALSE}
 m <- nn_linear |>
-  setup(loss=nn_dag_loss(dag,W),optimizer = optim_adam) |>
+  setup(loss=nn_dag_loss(dag,W),optimizer = optim_adamw) |>
   set_hparams(in_features=4,out_features=ncol(y)) |>
-  set_opt_hparams(lr=.5) |>
-  fit(data=list(x,y),accelerator=accelerator(cpu=TRUE),epoch=500,dataloader_options=list(batch_size=200,drop_last=FALSE))
+  set_opt_hparams(weight_decay = 0.001,lr=.1) |>
+  fit(data=list(x,y),accelerator=accelerator(cpu=TRUE),epoch=100,dataloader_options=list(batch_size=200,drop_last=FALSE))
+
+plot(m)
 ```
 
 

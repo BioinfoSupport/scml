@@ -33,8 +33,8 @@ fm <- train_delayed_classifier(
   iris$Species,
   pre_pruning_epoch = 100L,post_pruning_epoch = 100L,
   batch_size = 150L,
-  valid_data = 0.1,
-  input_dropout_rate = 0.1,
+  valid_data = 0.1,weight_decay = 0.001,
+  input_dropout_rate = 0,lr_start = 0.1,lr_end = 0.01,
   accelerator = accelerator(cpu=TRUE)
 )
 ```
@@ -45,7 +45,7 @@ plot(fm)
 ```
 
 performance on training(+valid) set
-```{r eval=FALSE, warning=FALSE}
+```{r eval=TRUE, warning=FALSE}
 pred <- predict_delayed(data.matrix(iris[1:4]),fm,accelerator = accelerator(cpu=TRUE))
 table(iris$Species,max.col(pred),useNA="i")
 ```
@@ -61,10 +61,10 @@ fm <- train_delayed_classifier(
   data.matrix(iris[1:4]),
   iris$Species,
   y_type = "ordinal",
-  batch_size = 150L,
-  valid_data = 0.1,
-  input_dropout_rate = 0.25,
   pre_pruning_epoch = 100L,post_pruning_epoch = 100L,
+  batch_size = 150L,
+  valid_data = 0.1,weight_decay = 0.001,
+  input_dropout_rate = 0,lr_start = 0.1,lr_end = 0.01,
   accelerator = accelerator(cpu=TRUE)
 )
 ```
