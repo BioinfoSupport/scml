@@ -39,7 +39,7 @@ bag_sampling_dataset(
 Given labelled bags of instances, randomly generate new bags bag_size by random sampling random sample instances
 }
 \examples{
-bags <- bag_sampling_dataset(
+bag_sampling_dataset(
   matrix((1:1000-1)\%\%100+1,100,10),
   split(seq(100),gl(20,5)),
   gl(2,10),

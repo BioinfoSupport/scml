@@ -14,12 +14,12 @@
 #' @param balanced a logical, if TRUE will generate the same number of bag for each target value
 #' @import torch
 #' @importFrom tibble tibble rowid_to_column
-#' @importFrom dplyr mutate inner_join select slice_sample slice_head group_by ungroup slice summarize n
+#' @importFrom dplyr mutate inner_join select slice_sample group_by ungroup slice summarize n if_else
 #' @importFrom purrr map
 #' @importFrom tidyr unnest
 #' @export
 #' @examples
-#' bags <- bag_sampling_dataset(
+#' bag_sampling_dataset(
 #'   matrix((1:1000-1)%%100+1,100,10),
 #'   split(seq(100),gl(20,5)),
 #'   gl(2,10),
@@ -53,11 +53,11 @@ bag_sampling_dataset <- torch::dataset(
         group_by(y) |>
         summarize(input_bag_idx = list(input_bag_idx)) |>
         ungroup() |>
-        mutate(input_bag_idx = map(input_bag_idx,~sample(.,nbag %/% n() + 1L,replace=replace))) |>
+        mutate(sz = nbag %/% n() + if_else(seq(n())<=(nbag %% n()),1L,0L)) |>
+        mutate(input_bag_idx = map2(input_bag_idx,sz,~sample(.x,.y,replace=replace))) |>
         unnest(input_bag_idx) |>
         slice_sample(prop=1) |>
-        slice_head(n=nbag) |>
-        select(!y) |>
+        select(!c(y,sz)) |>
         rowid_to_column("bag_id")
     } else {
       self$bags <- tibble(bag_id = seq(nbag)) %>%
