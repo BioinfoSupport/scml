@@ -12,7 +12,7 @@ nn_bag_softmax_pool1d(in_features, out_features)
 \item{out_features}{number of output dimensions}
 }
 \description{
-Pool bag of elements with softmax weights
+Pool bag of elements with softmax weights on dimension -2L
 }
 \examples{
 nn_bag_softmax_pool1d(32L,2L)(torch::torch_rand(3L,5L,32L))
