@@ -4,7 +4,7 @@
 
 
 #' @title title nn_cosine_similarity
-#' @description A nn_cosine_similarity layer, compute cos(w,x) or cos(w,|w|x) when scaled is TRUE
+#' @description A nn_cosine_similarity layer, compute cos(w,x) or cos(w,|w|x) when scaled is TRUE on the last dimension
 #' @param in_features Input number of features.
 #' @param out_features Output number of features.
 #' @param eps a positive scalar value to avoid divisions by 0
@@ -82,7 +82,7 @@ nn_cell_scorer <- torch::nn_module(
 
 
 
-#' @description Pool bag of elements with softmax weights
+#' @description Pool bag of elements with softmax weights on dimension -2L
 #' @title nn_bag_softmax_pool1d
 #' @param in_features number of input dimensions
 #' @param out_features number of output dimensions
