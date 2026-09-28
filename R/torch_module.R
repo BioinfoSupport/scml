@@ -94,7 +94,7 @@ nn_bag_softmax_pool1d <- nn_module(
   "bag_pooling",
   initialize = function(in_features,out_features) {
     self$nn_score <- nn_linear(in_features,out_features)
-    self$nn_weight <- nn_linear(in_features,1L,bias = FALSE)
+    self$nn_weight <- nn_linear(in_features,out_features,bias = FALSE)
   },
   forward = function(input) {
     s <- self$nn_score(input) # Score each cell
