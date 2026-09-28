@@ -38,7 +38,7 @@ bag_sampling_dataset <- torch::dataset(
     self$input_bags <- tibble(
       input_bag_idx = seq_along(bags),
       y = y,
-      elements = bags
+      elements = unname(bags)
     )
 
     #-#-#-#-#-#-#-#-#
@@ -49,26 +49,26 @@ bag_sampling_dataset <- torch::dataset(
     set.seed(seed)
     if (balanced) {
       self$bags <- self$input_bags |>
-        select(input_bag_idx,y) |>
         group_by(y) |>
-        summarize(input_bag_idx = list(input_bag_idx)) |>
-        ungroup() |>
-        mutate(sz = nbag %/% n() + if_else(seq(n())<=(nbag %% n()),1L,0L)) |>
-        mutate(input_bag_idx = map2(input_bag_idx,sz,~sample(.x,.y,replace=replace))) |>
-        unnest(input_bag_idx) |>
-        slice_sample(prop=1) |>
-        select(!c(y,sz)) |>
+        slice_sample(n=nbag,replace=replace) %>%
+        ungroup() %>%
+        slice_sample(prop=1) %>%
         rowid_to_column("bag_id")
     } else {
-      self$bags <- tibble(bag_id = seq(nbag)) %>%
-        # randomly select a sample for each bag to draw from it
-        mutate(input_bag_idx = sample(rep(self$input_bags$input_bag_idx,length.out = n())))
+      self$bags <- self$input_bags %>%
+        ungroup() %>%
+        slice_sample(n=nbag,replace=replace) %>%
+        rowid_to_column("bag_id")
     }
 
     # Then randomly select elements from selected sample
     self$bags <- self$bags %>%
-      inner_join(self$input_bags,by="input_bag_idx",relationship="many-to-many") %>%
-      mutate(elements = map(elements,sample,size=bag_size,replace=replace))
+      select(bag_id,elements) %>%
+      unnest_longer(elements) %>%
+      group_by(bag_id) %>%
+      slice_sample(n=bag_size,replace=TRUE) %>%
+      summarise(elements=list(elements)) %>%
+      inner_join(select(self$bags,bag_id,y,input_bag_idx),by="bag_id",relationship="one-to-one")
   },
   .length = function() {
     nrow(self$bags)
